@@ -46,6 +46,21 @@ public class UploadController {
             return csvFullList; // return after processing all rows
         } else{return Collections.emptyList();}
     }
+
+     @GetMapping("/readexcelfile")
+    public List<CourseDto> readAndValidateFile() {
+        validateFileService = validateCSVFileService;
+        List<CourseDto> csvFullList = validateFileService.readFile();
+        
+
+        if (validateFileService.validateFile(csvFullList)==false) {
+            System.out.println("in upload");
+            for (CourseDto temp : csvFullList) {
+                uploadFileService.validateRows(temp);
+            }
+            return csvFullList; // return after processing all rows
+        } else{return Collections.emptyList();}
+    }
     
 }
 
