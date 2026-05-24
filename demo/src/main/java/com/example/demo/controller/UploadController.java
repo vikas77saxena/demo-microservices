@@ -14,7 +14,7 @@ import com.example.demo.service.ReadValidateFile;
 import com.example.demo.service.UploadFile;
 
 
-//Main rest controller
+//Main rest controller.for csv
 @RestController
 public class UploadController {
 
@@ -28,13 +28,27 @@ public class UploadController {
     @Autowired
     private UploadFile uploadFileService;
 
-    
     private ReadValidateFile validateFileService;
 
     // Endpoint to read file
-    @GetMapping("/readfile")
+    @GetMapping("/readCSVfile")
     public List<CourseDto> readAndValidateFile() {
         validateFileService = validateCSVFileService;
+        List<CourseDto> csvFullList = validateFileService.readFile();
+        
+
+        if (validateFileService.validateFile(csvFullList)==false) {
+            System.out.println("in upload");
+            for (CourseDto temp : csvFullList) {
+                uploadFileService.validateRows(temp);
+            }
+            return csvFullList; // return after processing all rows
+        } else{return Collections.emptyList();}
+    }
+
+     @GetMapping("/readexcelfile")
+    public List<CourseDto> readAndValidateFile1() {
+        validateFileService = validateExcelFileService;
         List<CourseDto> csvFullList = validateFileService.readFile();
         
 

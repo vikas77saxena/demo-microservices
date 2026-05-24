@@ -18,6 +18,10 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.example.demo.dto.CourseDto;
@@ -25,16 +29,41 @@ import com.example.demo.dto.CourseDto;
 @Service
 public class ReadValidateExcel implements ReadValidateFile {
 
+    private static final Logger log = LoggerFactory.getLogger(ReadValidateExcel.class);
+
+    private final ObjectProvider<S3FileStorageService> s3FileStorageService;
+
+    @Value("${aws.s3.excel.local-path:D:/courses.xlsx}")
+    private String excelFilePath;
+
+    @Value("${aws.s3.excel.key:courses/uploads/courses.xlsx}")
+    private String excelS3Key;
+
+    public ReadValidateExcel(ObjectProvider<S3FileStorageService> s3FileStorageService) {
+        this.s3FileStorageService = s3FileStorageService;
+    }
+
+    private void uploadExcelToS3() {
+        S3FileStorageService storage = s3FileStorageService.getIfAvailable();
+        if (storage == null) {
+            throw new IllegalStateException(
+                    "S3 is not configured. Set aws.s3.enabled=true and restart the application.");
+        }
+        String location = storage.uploadFile(excelFilePath, excelS3Key);
+        log.info("Excel file uploaded to {}", location);
+    }
+
 @Override
 public List<CourseDto> readFile() {
 
-    String filePath = "D:/courses.xlsx";
+    uploadExcelToS3();
+
     List<CourseDto> courses = new ArrayList<>();
-    System.out.println("start of readvalidate excel");
+    log.info("Reading Excel file from {}", excelFilePath);
   
 
 
-    try (FileInputStream fis = new FileInputStream(filePath);
+    try (FileInputStream fis = new FileInputStream(excelFilePath);
          Workbook workbook = new org.apache.poi.xssf.usermodel.XSSFWorkbook(fis)) {
 
         Sheet sheet = workbook.getSheetAt(0); // first sheet
