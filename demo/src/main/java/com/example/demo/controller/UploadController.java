@@ -3,64 +3,46 @@ package com.example.demo.controller;
 import java.util.Collections;
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.dto.CourseDto;
-import com.example.demo.service.ReadValidateCSV;
-import com.example.demo.service.ReadValidateExcel;
+import com.example.demo.factory.FileType;
+import com.example.demo.factory.ReadValidateFileFactory;
 import com.example.demo.service.ReadValidateFile;
 import com.example.demo.service.UploadFile;
 
-
-//Main rest controller.for csv
 @RestController
 public class UploadController {
 
-    @Autowired
-    private ReadValidateCSV validateCSVFileService;
+    private final ReadValidateFileFactory readValidateFileFactory;
+    private final UploadFile uploadFileService;
 
-    @Autowired
-    private ReadValidateExcel validateExcelFileService;
+    public UploadController(ReadValidateFileFactory readValidateFileFactory, UploadFile uploadFileService) {
+        this.readValidateFileFactory = readValidateFileFactory;
+        this.uploadFileService = uploadFileService;
+    }
 
-
-    @Autowired
-    private UploadFile uploadFileService;
-
-    private ReadValidateFile validateFileService;
-
-    // Endpoint to read file
     @GetMapping("/readCSVfile")
-    public List<CourseDto> readAndValidateFile() {
-        validateFileService = validateCSVFileService;
-        List<CourseDto> csvFullList = validateFileService.readFile();
-        
-
-        if (validateFileService.validateFile(csvFullList)==false) {
-            System.out.println("in upload");
-            for (CourseDto temp : csvFullList) {
-                uploadFileService.validateRows(temp);
-            }
-            return csvFullList; // return after processing all rows
-        } else{return Collections.emptyList();}
+    public List<CourseDto> readAndValidateCsvFile() {
+        return processFile(FileType.CSV);
     }
 
-     @GetMapping("/readexcelfile")
-    public List<CourseDto> readAndValidateFile1() {
-        validateFileService = validateExcelFileService;
-        List<CourseDto> csvFullList = validateFileService.readFile();
-        
-
-        if (validateFileService.validateFile(csvFullList)==false) {
-            System.out.println("in upload");
-            for (CourseDto temp : csvFullList) {
-                uploadFileService.validateRows(temp);
-            }
-            return csvFullList; // return after processing all rows
-        } else{return Collections.emptyList();}
+    @GetMapping("/readexcelfile")
+    public List<CourseDto> readAndValidateExcelFile() {
+        return processFile(FileType.EXCEL);
     }
-    
+
+    private List<CourseDto> processFile(FileType fileType) {
+        ReadValidateFile reader = readValidateFileFactory.createReader(fileType);
+        List<CourseDto> courses = reader.readFile();
+
+        if (!reader.validateFile(courses)) {
+            for (CourseDto row : courses) {
+                uploadFileService.validateRows(row);
+            }
+            return courses;
+        }
+        return Collections.emptyList();
+    }
 }
-
-    
