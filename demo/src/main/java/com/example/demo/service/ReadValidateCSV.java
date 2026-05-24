@@ -38,6 +38,7 @@ public class ReadValidateCSV implements  ReadValidateFile {
     @Override
     public List<CourseDto> readFile(){
         File file = new File("D:/courses.csv");
+        
         List<CourseDto> list =new ArrayList<>();
          System.out.println("Default Charset: " + java.nio.charset.Charset.defaultCharset());
         System.out.println("file.encoding: " + System.getProperty("file.encoding"));

@@ -28,11 +28,10 @@ public class UploadController {
     @Autowired
     private UploadFile uploadFileService;
 
-    
     private ReadValidateFile validateFileService;
 
     // Endpoint to read file
-    @GetMapping("/readfile")
+    @GetMapping("/readCSVfile")
     public List<CourseDto> readAndValidateFile() {
         validateFileService = validateCSVFileService;
         List<CourseDto> csvFullList = validateFileService.readFile();
@@ -48,8 +47,8 @@ public class UploadController {
     }
 
      @GetMapping("/readexcelfile")
-    public List<CourseDto> readAndValidateFile() {
-        validateFileService = validateCSVFileService;
+    public List<CourseDto> readAndValidateFile1() {
+        validateFileService = validateExcelFileService;
         List<CourseDto> csvFullList = validateFileService.readFile();
         
 
